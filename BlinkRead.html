@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blink Read</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>📖</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== THEME DEFINITIONS ===== */
+    body.theme-light {
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      color: #333;
+    }
+
+    body.theme-dark {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      color: #fff;
+    }
+
+    body.theme-sepia {
+      background: linear-gradient(135deg, #f4eae0 0%, #e8dcc8 100%);
+      color: #3e2723;
+    }
+
+    body.theme-ocean {
+      background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+      color: #004d40;
+    }
+
+    body.theme-forest {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      color: #1b5e20;
+    }
+
+    body.theme-sunset {
+      background: linear-gradient(135deg, #ffe0b2 0%, #ffb74d 100%);
+      color: #e65100;
+    }
+
+    body.theme-midnight {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      color: #e0e0ff;
+    }
+
+    body.theme-contrast {
+      background: #000;
+      color: #fff;
+    }
+
+    body.theme-navy {
+      background: linear-gradient(135deg, #0f1b2e 0%, #1a2e42 100%);
+      color: #e0e8f0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ===== SETUP PANEL ===== */
+    #setup-panel {
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.theme-light #setup-panel,
+    body.theme-sepia #setup-panel,
+    body.theme-ocean #setup-panel,
+    body.theme-forest #setup-panel,
+    body.theme-sunset #setup-panel {
+      background: white;
+      color: #333;
+    }
+
+    body.theme-dark #setup-panel,
+    body.theme-navy #setup-panel,
+    body.theme-midnight #setup-panel,
+    body.theme-contrast #setup-panel {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    #setup-panel h1 {
+      font-size: 28px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 2rem;
+    }
+
+    /* ===== THEME SELECTOR ===== */
+    .theme-section {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-dark .theme-section,
+    body.theme-navy .theme-section,
+    body.theme-midnight .theme-section,
+    body.theme-contrast .theme-section {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .theme-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 14px;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .theme-btn {
+      padding: 12px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .theme-btn.active {
+      border-color: currentColor;
+      transform: scale(1.05);
+      box-shadow: 0 0 0 1px currentColor;
+    }
+
+    .theme-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .theme-light-btn { background: #f5f5f5; color: #333; }
+    .theme-dark-btn { background: #1a1a1a; color: #fff; }
+    .theme-sepia-btn { background: #f4eae0; color: #3e2723; }
+    .theme-ocean-btn { background: #e0f2f1; color: #004d40; }
+    .theme-forest-btn { background: #e8f5e9; color: #1b5e20; }
+    .theme-sunset-btn { background: #ffe0b2; color: #e65100; }
+    .theme-midnight-btn { background: #1a237e; color: #e0e0ff; }
+    .theme-navy-btn { background: #0f1b2e; color: #e0e8f0; }
+    .theme-contrast-btn { background: #000; color: #fff; }
+
+    /* ===== INPUT SECTION ===== */
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 12px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      transition: border-color 0.2s, background 0.3s, color 0.3s;
+    }
+
+    body.theme-light textarea,
+    body.theme-sepia textarea,
+    body.theme-ocean textarea,
+    body.theme-forest textarea,
+    body.theme-sunset textarea {
+      background: white;
+      color: #333;
+    }
+
+    body.theme-dark textarea,
+    body.theme-navy textarea,
+    body.theme-midnight textarea,
+    body.theme-contrast textarea {
+      background: #2a2a2a;
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: currentColor;
+      border-width: 2px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: 2px solid currentColor;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: inherit;
+    }
+
+    body.theme-light button,
+    body.theme-sepia button,
+    body.theme-ocean button,
+    body.theme-forest button,
+    body.theme-sunset button {
+      border-color: #ccc;
+      color: #333;
+    }
+
+    body.theme-dark button,
+    body.theme-navy button,
+    body.theme-midnight button,
+    body.theme-contrast button {
+      border-color: #666;
+      color: #fff;
+    }
+
+    button:hover {
+      background: currentColor;
+      color: inherit;
+      filter: invert(1);
+      transform: translateY(-2px);
+    }
+
+    #start-btn {
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    body.theme-light #start-btn,
+    body.theme-sepia #start-btn,
+    body.theme-ocean #start-btn,
+    body.theme-forest #start-btn,
+    body.theme-sunset #start-btn {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+
+    body.theme-dark #start-btn,
+    body.theme-navy #start-btn,
+    body.theme-midnight #start-btn,
+    body.theme-contrast #start-btn {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* ===== READER PANEL ===== */
+    #reader-panel {
+      display: none;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      min-height: 500px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.theme-light #reader-panel,
+    body.theme-sepia #reader-panel,
+    body.theme-ocean #reader-panel,
+    body.theme-forest #reader-panel,
+    body.theme-sunset #reader-panel {
+      background: white;
+    }
+
+    body.theme-dark #reader-panel,
+    body.theme-navy #reader-panel,
+    body.theme-midnight #reader-panel,
+    body.theme-contrast #reader-panel {
+      background: #000;
+    }
+
+    #reader-panel.visible {
+      display: flex;
+    }
+
+    .word-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    #current-word {
+      font-size: 72px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-align: center;
+      max-width: 800px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    body.theme-contrast #current-word {
+      font-weight: 900;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    #word-counter {
+      margin-top: 2rem;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    #words-remaining {
+      margin-top: 0.75rem;
+      font-size: 14px;
+      opacity: 0.5;
+      font-weight: 500;
+    }
+
+    .donut-container {
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .donut-chart {
+      width: 220px;
+      height: 220px;
+      transform: rotate(-90deg);
+    }
+
+    .donut-progress {
+      transition: stroke-dasharray 0.3s ease, stroke-dashoffset 0.3s ease;
+    }
+
+    body.theme-light .donut-progress,
+    body.theme-sepia .donut-progress,
+    body.theme-ocean .donut-progress,
+    body.theme-forest .donut-progress,
+    body.theme-sunset .donut-progress {
+      stroke: #333;
+    }
+
+    body.theme-dark .donut-progress,
+    body.theme-navy .donut-progress,
+    body.theme-midnight .donut-progress,
+    body.theme-contrast .donut-progress {
+      stroke: #fff;
+    }
+
+    .donut-text {
+      font-size: 24px;
+      font-weight: 600;
+      transform: rotate(90deg);
+      transform-origin: 100px 100px;
+    }
+
+    body.theme-light .donut-text,
+    body.theme-sepia .donut-text,
+    body.theme-ocean .donut-text,
+    body.theme-forest .donut-text,
+    body.theme-sunset .donut-text {
+      fill: #333;
+    }
+
+    body.theme-dark .donut-text,
+    body.theme-navy .donut-text,
+    body.theme-midnight .donut-text,
+    body.theme-contrast .donut-text {
+      fill: #fff;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    body.theme-light #play-btn,
+    body.theme-sepia #play-btn,
+    body.theme-ocean #play-btn,
+    body.theme-forest #play-btn,
+    body.theme-sunset #play-btn {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+
+    body.theme-dark #play-btn,
+    body.theme-navy #play-btn,
+    body.theme-midnight #play-btn,
+    body.theme-contrast #play-btn {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    #play-btn:hover {
+      filter: brightness(0.9);
+    }
+
+    #pause-btn, #stop-btn {
+      opacity: 0.7;
+    }
+
+    #pause-btn:hover, #stop-btn:hover {
+      opacity: 1;
+    }
+
+    .settings {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .setting-row label {
+      font-size: 13px;
+      opacity: 0.7;
+      min-width: 100px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    body.theme-dark input[type="range"],
+    body.theme-navy input[type="range"],
+    body.theme-midnight input[type="range"],
+    body.theme-contrast input[type="range"] {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: currentColor;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: currentColor;
+      cursor: pointer;
+      border: none;
+    }
+
+    .setting-value {
+      font-size: 13px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      #setup-panel {
+        padding: 1.5rem;
+      }
+
+      #setup-panel h1 {
+        font-size: 22px;
+      }
+
+      #current-word {
+        font-size: 48px;
+      }
+
+      .theme-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .controls {
+        gap: 8px;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="container">
+    <!-- Setup Panel -->
+    <div id="setup-panel">
+      <h1>👁️ Blink Read</h1>
+      <p class="subtitle">Read with focus. One word at a time.</p>
+
+      <!-- Theme Selector -->
+      <div class="theme-section">
+        <label>Theme</label>
+        <div class="theme-grid">
+          <button class="theme-btn theme-light-btn" data-theme="light" title="Light">Light</button>
+          <button class="theme-btn theme-dark-btn active" data-theme="dark" title="Dark">Dark</button>
+          <button class="theme-btn theme-sepia-btn" data-theme="sepia" title="Sepia">Sepia</button>
+          <button class="theme-btn theme-ocean-btn" data-theme="ocean" title="Ocean">Ocean</button>
+          <button class="theme-btn theme-forest-btn" data-theme="forest" title="Forest">Forest</button>
+          <button class="theme-btn theme-sunset-btn" data-theme="sunset" title="Sunset">Sunset</button>
+          <button class="theme-btn theme-midnight-btn" data-theme="midnight" title="Midnight">Midnight</button>
+          <button class="theme-btn theme-navy-btn" data-theme="navy" title="Navy">Navy</button>
+          <button class="theme-btn theme-contrast-btn" data-theme="contrast" title="High Contrast">Contrast</button>
+        </div>
+      </div>
+
+      <!-- Text Input -->
+      <div class="input-group">
+        <label>Choose your text</label>
+        <div class="button-group">
+          <button id="upload-btn">
+            <i class="fas fa-upload"></i> Upload file
+          </button>
+          <input type="file" id="file-input" accept=".txt,.pdf,.doc,.docx,.md"/>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Or paste text here</label>
+        <textarea id="text-input" placeholder="Paste your text here..."></textarea>
+      </div>
+
+      <button id="start-btn">
+        <i class="fas fa-play"></i> Start reading
+      </button>
+    </div>
+
+    <!-- Reader Panel -->
+    <div id="reader-panel">
+      <div class="word-display">
+        <div id="current-word">Ready</div>
+        
+        <div class="donut-container">
+          <svg class="donut-chart" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="85" fill="none" stroke="#333" stroke-width="20" opacity="0.2"/>
+            <circle class="donut-progress" cx="100" cy="100" r="85" fill="none" stroke-width="20" stroke-dasharray="0 534.07" stroke-dashoffset="0"/>
+            <text x="100" y="95" text-anchor="middle" class="donut-text" id="donut-count">0/0</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="play-btn">
+          <i class="fas fa-play"></i> Play
+        </button>
+        <button id="pause-btn" style="display: none;">
+          <i class="fas fa-pause"></i> Pause
+        </button>
+        <button id="stop-btn">
+          <i class="fas fa-stop"></i> Stop
+        </button>
+      </div>
+
+      <div class="settings">
+        <div class="setting-row">
+          <label>Speed (WPM)</label>
+          <input type="range" id="speed-slider" min="100" max="1000" value="250" step="10"/>
+          <span class="setting-value"><span id="speed-display">250</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = {
+      words: [],
+      currentIndex: 0,
+      isPlaying: false,
+      wpm: 250,
+      timeoutId: null,
+      currentTheme: 'dark',
+
+      init() {
+        this.loadTheme();
+        this.setupThemeButtons();
+
+        document.getElementById('upload-btn').addEventListener('click', () => {
+          document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              document.getElementById('text-input').value = event.target.result;
+            };
+            reader.readAsText(file);
+          }
+        });
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+          const text = document.getElementById('text-input').value.trim();
+          if (!text) {
+            alert('Please enter or upload some text');
+            return;
+          }
+          this.words = text.split(/\s+/).filter(w => w.length > 0);
+          this.currentIndex = 0;
+          this.isPlaying = false;
+
+          document.getElementById('setup-panel').style.display = 'none';
+          document.getElementById('reader-panel').classList.add('visible');
+          this.updateDisplay();
+        });
+
+        document.getElementById('play-btn').addEventListener('click', () => {
+          this.isPlaying = true;
+          document.getElementById('play-btn').style.display = 'none';
+          document.getElementById('pause-btn').style.display = 'flex';
+          this.playNext();
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', () => {
+          this.isPlaying = false;
+          document.getElementById('pause-btn').style.display = 'none';
+          document.getElementById('play-btn').style.display = 'flex';
+          if (this.timeoutId) clearTimeout(this.timeoutId);
+        });
+
+        document.getElementById('stop-btn').addEventListener('click', () => {
+          this.isPlaying = false;
+          if (this.timeoutId) clearTimeout(this.timeoutId);
+          document.getElementById('reader-panel').classList.remove('visible');
+          document.getElementById('setup-panel').style.display = 'block';
+          document.getElementById('pause-btn').style.display = 'none';
+          document.getElementById('play-btn').style.display = 'flex';
+          this.currentIndex = 0;
+        });
+
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+          this.wpm = parseInt(e.target.value);
+          document.getElementById('speed-display').textContent = this.wpm;
+        });
+      },
+
+      setupThemeButtons() {
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const theme = btn.getAttribute('data-theme');
+            this.setTheme(theme);
+            
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+          });
+        });
+      },
+
+      setTheme(theme) {
+        document.body.className = `theme-${theme}`;
+        this.currentTheme = theme;
+        localStorage.setItem('speedreader-theme', theme);
+      },
+
+      loadTheme() {
+        const saved = localStorage.getItem('speedreader-theme');
+        if (saved) {
+          this.setTheme(saved);
+          document.querySelector(`[data-theme="${saved}"]`).classList.add('active');
+        }
+      },
+
+      playNext() {
+        if (!this.isPlaying || this.currentIndex >= this.words.length) {
+          if (this.currentIndex >= this.words.length) {
+            document.getElementById('pause-btn').style.display = 'none';
+            document.getElementById('play-btn').style.display = 'flex';
+            this.isPlaying = false;
+          }
+          return;
+        }
+
+        this.updateDisplay();
+        const msPerWord = 60000 / this.wpm;
+        this.timeoutId = setTimeout(() => {
+          this.currentIndex++;
+          this.playNext();
+        }, msPerWord);
+      },
+
+      updateDisplay() {
+        const word = this.words[this.currentIndex] || '';
+        document.getElementById('current-word').textContent = word;
+        
+        // Update donut chart
+        const circumference = 534.07; // 2 * π * 85
+        const progress = this.words.length > 0 ? this.currentIndex / this.words.length : 0;
+        const filledLength = circumference * progress;
+        
+        const donutProgress = document.querySelector('.donut-progress');
+        donutProgress.style.strokeDasharray = `${filledLength} ${circumference}`;
+        
+        // Update count text
+        document.getElementById('donut-count').textContent = `${this.currentIndex}/${this.words.length}`;
+      }
+    };
+
+    app.init();
+  </script>
+</body>
+</html>
